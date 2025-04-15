@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ### 🛣️ Real-Time Pothole Segmentation for Road Damage Assessment with YOLOv8
 ![Pothole Segmentation](/images/cover_image_raw.png)
 
@@ -105,3 +106,6 @@ This GIF showcases our application running in real-time:
 - 🌐 **Kaggle Notebook**: Interested in a Kaggle environment? Explore the notebook [here](https://www.kaggle.com/code/farzadnekouei/pothole-segmentation-for-road-damage-assessment).
 - 🌐 **Dataset Source**: Available on both [Roboflow](https://universe.roboflow.com/farzad/pothole_segmentation_yolov8/dataset/1) and [Kaggle](https://www.kaggle.com/datasets/farzadnekouei/pothole-image-segmentation-dataset).
 - 🤝 **Connect on LinkedIn**: Have questions or looking for collaboration? Let's connect on [LinkedIn](https://linkedin.com/in/farzad-nekouei-7535aa53/).
+=======
+# road-damage-detect
+>>>>>>> e84475dfa569b00d074b29fdf57ed23533426ad9
