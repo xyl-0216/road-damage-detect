@@ -69,20 +69,17 @@ http://localhost:5000
 
 ## 运行结果展示
 
-### 上传界面
-![上传界面](resultimage/upload_interface.png)
+### 登录界面
+![登录界面](result_picture.png)
 
 ### 视频处理中
-![处理中](resultimage/processing.png)
-
-### 处理结果展示
-![处理结果](resultimage/result.png)
+![处理中](result_picture2.png)
 
 ### 原始视频与处理后视频对比
-![视频对比](resultimage/video_comparison.png)
+![视频对比](result_picture3.png)
 
 ### 损坏率统计
-![损坏率](resultimage/damage_rate.png)
+![损坏率统计](result_picture3.png)
 
 ## 注意事项
 
