@@ -1,111 +1,111 @@
-<<<<<<< HEAD
-### 🛣️ Real-Time Pothole Segmentation for Road Damage Assessment with YOLOv8
-![Pothole Segmentation](/images/cover_image_raw.png)
+# 道路损坏评估系统
 
-## 🔍 Overview
-This project leverages YOLOv8-seg's cutting-edge segmentation capabilities for real-time road damage assessment, with a particular emphasis on pothole detection. It aims to bolster road maintenance efforts by providing precise, real-time data on road conditions, thereby enhancing public safety and aiding in urban infrastructure management. Combining computer vision with advanced object segmentation, our solution delineates potholes in detail, offering actionable insights for smart city and autonomous vehicle advancements.
+基于 YOLOv8 的智能道路损坏检测与评估系统，为道路维护提供精确的数据支持。
 
+## 功能特点
 
-## 🎯 Objectives
-Key milestones in this project include:
-* **Speed-Oriented YOLOv8n-seg Selection:** Adopting YOLOv8n-seg for its quick processing, balancing speed with accuracy, ideal for real-time pothole analysis.
-* **Targeted Dataset Preparation:** Creating a curated dataset of pothole imagery, augmented to train the model effectively for segmentation tasks.
-* **YOLOv8-seg Fine-Tuning:** Adapting the pre-trained model via transfer learning to pinpoint and segment potholes with high precision.
-* **Comprehensive Model Evaluation:** Utilizing various metrics and analyses to validate the model's performance and ensure its dependability.
-* **Model Inference Testing:** Assessing the model on validation images and a novel test video to confirm its real-world applicability.
-* **Real-Time Damage Assessment:** Implementing the model on video feeds to continuously monitor and quantify pothole-inflicted road damage.
+- 支持视频上传和处理
+- 实时道路损坏检测
+- 自动计算道路损坏率
+- 提供原始视频和处理后视频的对比展示
+- 支持视频下载和分享
 
+## 技术栈
 
-## 📚 Dataset Description
+- 后端：Python, Flask
+- 前端：HTML, CSS, JavaScript, Bootstrap
+- 深度学习：YOLOv8
+- 视频处理：OpenCV
 
-### 🌐 Overview
-The [**Pothole Detection for Road Safety Dataset**](https://www.kaggle.com/datasets/farzadnekouei/pothole-image-segmentation-dataset) is purpose-built for training YOLOv8-seg models to identify and segment potholes.
+## 安装步骤
 
-### 🔍 Specifications 
-- 🕳️ **Class**: 'Pothole' 
-- 🖼️ **Total Images**: 780
-- 📏 **Image Dimensions**: 640x640 pixels
-- 📂 **Format**: YOLOv8 annotation format
+1. 克隆项目
+```bash
+git clone [项目地址]
+cd YOLOv8_Pothole_Segmentation_Road_Damage_Assessment
+```
 
-### 🔄 Pre-processing
-Includes auto-orientation and resizing to 640x640 for consistency.
+2. 创建虚拟环境
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+```
 
-### 🔢 Dataset Split
-- **Training Set**: 720 images with augmentations.
-- **Validation Set**: 60 images.
+3. 安装依赖
+```bash
+pip install -r requirements.txt
+```
 
-### 🎭 Augmentation on Training Set
-Comprising flips, cropping, rotation, shearing, brightness, and exposure adjustments.
+4. 配置环境变量
+```bash
+# 创建 .env 文件并添加以下内容
+FLASK_APP=run.py
+FLASK_ENV=development
+SECRET_KEY=your_secret_key
+```
 
-### 📌 Access
-Publicly accessible on Kaggle and Roboflow:
-- [Kaggle Dataset](https://www.kaggle.com/datasets/farzadnekouei/pothole-image-segmentation-dataset)
-- [Roboflow Project](https://universe.roboflow.com/farzad/pothole_segmentation_yolov8/dataset/1)
+## 运行项目
 
+1. 启动 Flask 应用
+```bash
+python run.py
+```
 
-## 🎥 YouTube Demo
-Real-Time Pothole Segmentation for Road Damage Assessment with YOLOv8 in Action:
+2. 在浏览器中访问
+```
+http://localhost:5000
+```
 
-[![Pothole Segmentation Demo](https://img.youtube.com/vi/1YkmlMbjwxY/0.jpg)](https://youtu.be/1YkmlMbjwxY)  
+## 使用说明
 
+1. 点击上传区域或拖放视频文件到指定区域
+2. 等待视频上传和处理
+3. 查看处理结果，包括：
+   - 原始视频
+   - 处理后的视频（带有损坏检测标记）
+   - 道路损坏率统计
+4. 可以下载处理后的视频
 
-## 📁 File Descriptions
+## 运行结果展示
 
-- **`images/`**: Contains the cover images for the project and the sample image utilized within the notebook.
-- **`model/`**: Includes the best-performing fine-tuned YOLOv8 model in `.pt` (PyTorch format) used for pothole segmentation.
-- **`pothole_segmentation_YOLOv8.ipynb`**: The Jupyter notebook that documents the model development pipeline, from data preparation to model evaluation and inference.
-- **`road_damage_assessment_app.py`**: The Python script for deploying the YOLOv8 segmentation model to estimate road damage in real-time.
-- **`sample_video.mp4`**: A sample video file used to demonstrate the application's capabilities.
-- **`real_time_road_damage_assessment_demo.gif`**: A GIF showcasing the application's real-time road damage assessment.
-- **`LICENSE`**: Outlines the terms of use for this project's resources.
-- **`README.md`**: The document you are reading that provides an overview and essential details of the project.
+### 上传界面
+![上传界面](resultimage/upload_interface.png)
 
+### 视频处理中
+![处理中](resultimage/processing.png)
 
-## 🚀 Instructions for Local Execution
+### 处理结果展示
+![处理结果](resultimage/result.png)
 
-To experience the full capabilities of the YOLOv8 Traffic Density Estimation project on your local machine, follow these steps:
+### 原始视频与处理后视频对比
+![视频对比](resultimage/video_comparison.png)
 
-### 1️⃣. Initial Setup
-1. **Clone the Repository**: Start by cloning the project repository to your local system using the command below:
-    ```bash
-    git clone https://github.com/FarzadNekouee/YOLOv8_Pothole_Segmentation_Road_Damage_Assessment.git
-    ```
-2. **Navigate to the Project Directory**: After cloning, change into the project directory with:
-    ```bash
-    cd YOLOv8_Pothole_Segmentation_Road_Damage_Assessment
-    ```
+### 损坏率统计
+![损坏率](resultimage/damage_rate.png)
 
-### 2️⃣. Exploring the Model Development Pipeline
-Get hands-on with the model development process and see the results of traffic density estimation:
-1. **Download the Dataset**: Access the dataset from [Kaggle](https://www.kaggle.com/datasets/farzadnekouei/pothole-image-segmentation-dataset). Download and extract it to a known directory on your machine.
-2. **Open the Notebook**: Launch Jupyter Notebook or JupyterLab and open `real-pothole_segmentation_YOLOv8.ipynb` to explore the model development pipeline.
-3. **Install Dependencies**: Ensure all necessary Python libraries are installed for flawless execution.
-4. **Update Paths**: Update the paths in the notebook for the dataset, sample image, and sample video to their respective locations on your local system.
-5. **Run the Notebook**: Execute all cells in the notebook to step through the data preprocessing, model training, and evaluation phases.
+## 注意事项
 
-### 3️⃣. Watching the Real-Time Performance
-Witness the real-time road damage assessment capability of our application:
-1. **Install Ultralytics YOLO**: Ensure you have the `ultralytics` package installed by running:
-    ```bash
-    pip install ultralytics
-    ```
-2. **Run the Analysis Script**: Execute the script to start the real-time traffic density estimation:
-    ```bash
-    python road_damage_assessment_app.py
-    ```
-3. **Real-Time Analysis**: The video window will display the live road damage assessment. To exit, simply press 'q' while the video window is active.
+- 支持的视频格式：MP4, AVI, MOV, WMV
+- 建议上传的视频时长不超过 5 分钟
+- 确保有足够的磁盘空间用于视频处理
 
-This GIF showcases our application running in real-time:
+## 常见问题
 
-![Real-Time Road Damage Assessment GIF](real_time_road_damage_assessment_demo.gif) 
+1. 视频上传失败
+   - 检查文件格式是否支持
+   - 确保文件大小不超过限制
+   - 检查网络连接
 
+2. 视频处理失败
+   - 检查服务器资源是否充足
+   - 确保模型文件存在且正确
+   - 查看服务器日志获取详细错误信息
 
-## 🔗 Additional Resources
+## 贡献指南
 
-- 🎥 **Project Demo**: Watch the live demonstration of this project on [YouTube](https://www.youtube.com/watch?v=1YkmlMbjwxY).
-- 🌐 **Kaggle Notebook**: Interested in a Kaggle environment? Explore the notebook [here](https://www.kaggle.com/code/farzadnekouei/pothole-segmentation-for-road-damage-assessment).
-- 🌐 **Dataset Source**: Available on both [Roboflow](https://universe.roboflow.com/farzad/pothole_segmentation_yolov8/dataset/1) and [Kaggle](https://www.kaggle.com/datasets/farzadnekouei/pothole-image-segmentation-dataset).
-- 🤝 **Connect on LinkedIn**: Have questions or looking for collaboration? Let's connect on [LinkedIn](https://linkedin.com/in/farzad-nekouei-7535aa53/).
-=======
-# road-damage-detect
->>>>>>> e84475dfa569b00d074b29fdf57ed23533426ad9
+欢迎提交 Issue 和 Pull Request 来帮助改进项目。
+
+## 许可证
+
+[MIT License](LICENSE)

@@ -261,25 +261,25 @@
             <p class="app-description">基于YOLOv8的智能道路损坏检测与评估系统，为道路维护提供精确的数据支持</p>
         </div>
 
-        <div class="upload-container fade-in">
-            <div class="drag-area" id="dropZone">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p class="mb-2">拖放视频文件到这里</p>
-                <p class="text-muted">或</p>
-                <input type="file" id="fileInput" accept="video/*" class="d-none">
-                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                    <i class="fas fa-file-video me-2"></i>选择视频文件
-                </button>
-            </div>
-            
-            <div class="progress">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                     role="progressbar" 
-                     style="width: 100%">
-                    <span class="loading-spinner me-2"></span>
-                    正在处理视频...
+        <div class="upload-container">
+            <h2 class="mb-4">上传视频</h2>
+            <form id="uploadForm" method="POST" action="{{ url_for('main.upload_file') }}" enctype="multipart/form-data">
+                <div class="drag-area" id="dragArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>拖放视频文件到这里或点击选择文件</p>
+                    <input type="file" name="file" id="fileInput" accept="video/*" hidden>
                 </div>
-            </div>
+                <div class="progress" id="progressBar">
+                    <div class="progress-bar" id="progressBarInner" role="progressbar" style="width: 0%"></div>
+                </div>
+                <div class="processing-progress mt-3" id="processingProgress" style="display: none;">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" id="processingBar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <p class="text-center mt-2" id="processingStatus">正在处理视频...</p>
+                </div>
+                <button type="submit" class="btn btn-primary" id="uploadButton" disabled>开始上传</button>
+            </form>
         </div>
 
         <div id="result" class="result-container fade-in">
@@ -307,10 +307,10 @@
                             </div>
                         </div>
                         <div class="video-controls">
-                            <button class="btn btn-primary" onclick="playOriginalVideo()">
+                            <button class="btn btn-primary" id="playOriginalBtn">
                                 <i class="fas fa-play me-2"></i>播放
                             </button>
-                            <button class="btn btn-secondary" onclick="stopOriginalVideo()">
+                            <button class="btn btn-secondary" id="stopOriginalBtn">
                                 <i class="fas fa-stop me-2"></i>停止
                             </button>
                         </div>
@@ -329,10 +329,10 @@
                             </div>
                         </div>
                         <div class="video-controls">
-                            <button class="btn btn-primary" onclick="playProcessedVideo()">
+                            <button class="btn btn-primary" id="playProcessedBtn">
                                 <i class="fas fa-play me-2"></i>播放
                             </button>
-                            <button class="btn btn-secondary" onclick="stopProcessedVideo()">
+                            <button class="btn btn-secondary" id="stopProcessedBtn">
                                 <i class="fas fa-stop me-2"></i>停止
                             </button>
                         </div>
@@ -350,210 +350,363 @@
     </div>
 
     <script>
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const progress = document.querySelector('.progress');
-        const result = document.getElementById('result');
-        const damagePercentage = document.getElementById('damagePercentage');
-        const originalPreview = document.getElementById('originalPreview');
-        const processedPreview = document.getElementById('processedPreview');
-        const originalVideo = document.getElementById('originalVideo');
-        const processedVideo = document.getElementById('processedVideo');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const originalLoading = document.getElementById('originalLoading');
-        const processedLoading = document.getElementById('processedLoading');
-        
-        let originalVideoPlaying = false;
-        let processedVideoPlaying = false;
+        document.addEventListener('DOMContentLoaded', function() {
+            const dragArea = document.getElementById('dragArea');
+            const fileInput = document.getElementById('fileInput');
+            const uploadButton = document.getElementById('uploadButton');
+            const progressBar = document.getElementById('progressBar');
+            const progressBarInner = document.getElementById('progressBarInner');
+            const uploadForm = document.getElementById('uploadForm');
+            const result = document.getElementById('result');
+            const damagePercentage = document.getElementById('damagePercentage');
+            const originalPreview = document.getElementById('originalPreview');
+            const processedPreview = document.getElementById('processedPreview');
+            const originalVideo = document.getElementById('originalVideo');
+            const processedVideo = document.getElementById('processedVideo');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const originalLoading = document.getElementById('originalLoading');
+            const processedLoading = document.getElementById('processedLoading');
+            const processingProgress = document.getElementById('processingProgress');
+            const processingBar = document.getElementById('processingBar');
+            const processingStatus = document.getElementById('processingStatus');
+            
+            let originalVideoPlaying = false;
+            let processedVideoPlaying = false;
 
-        // Drag and drop handlers
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-        });
+            // 点击拖放区域时触发文件选择
+            dragArea.addEventListener('click', () => fileInput.click());
 
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, highlight, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, unhighlight, false);
-        });
-
-        function highlight(e) {
-            dropZone.classList.add('active');
-        }
-
-        function unhighlight(e) {
-            dropZone.classList.remove('active');
-        }
-
-        dropZone.addEventListener('drop', handleDrop, false);
-        fileInput.addEventListener('change', handleFiles, false);
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles({ target: { files: files } });
-        }
-
-        function handleFiles(e) {
-            const file = e.target.files[0];
-            if (file && file.type.startsWith('video/')) {
-                uploadFile(file);
-            } else {
-                showError('请上传视频文件');
-            }
-        }
-
-        function showError(message) {
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-danger alert-dismissible fade show mt-3';
-            alert.innerHTML = `
-                <i class="fas fa-exclamation-circle me-2"></i>${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            dropZone.parentElement.appendChild(alert);
-            setTimeout(() => alert.remove(), 5000);
-        }
-
-        function playOriginalVideo() {
-            if (originalVideoPlaying) return;
-            
-            const videoContainer = originalPreview.parentElement;
-            const img = videoContainer.querySelector('img');
-            const video = videoContainer.querySelector('video');
-            const loading = videoContainer.querySelector('#originalLoading');
-            
-            loading.style.display = 'block';
-            
-            video.src = originalVideoUrl;
-            
-            img.style.display = 'none';
-            video.style.display = 'block';
-            
-            video.onloadeddata = function() {
-                loading.style.display = 'none';
-                video.play();
-            };
-            
-            video.onerror = function() {
-                loading.textContent = '加载失败，请重试';
-                loading.style.display = 'block';
-                setTimeout(() => {
-                    stopOriginalVideo();
-                }, 2000);
-            };
-            
-            originalVideoPlaying = true;
-            
-            video.onended = function() {
-                stopOriginalVideo();
-            };
-        }
-
-        function stopOriginalVideo() {
-            if (!originalVideoPlaying) return;
-            
-            const videoContainer = originalPreview.parentElement;
-            const img = videoContainer.querySelector('img');
-            const video = videoContainer.querySelector('video');
-            const loading = videoContainer.querySelector('#originalLoading');
-            
-            video.pause();
-            video.style.display = 'none';
-            img.style.display = 'block';
-            loading.style.display = 'none';
-            originalVideoPlaying = false;
-        }
-
-        function playProcessedVideo() {
-            if (processedVideoPlaying) return;
-            
-            const videoContainer = processedPreview.parentElement;
-            const img = videoContainer.querySelector('img');
-            const video = videoContainer.querySelector('video');
-            const loading = videoContainer.querySelector('#processedLoading');
-            
-            loading.style.display = 'block';
-            
-            video.src = processedVideoUrl;
-            
-            img.style.display = 'none';
-            video.style.display = 'block';
-            
-            video.onloadeddata = function() {
-                loading.style.display = 'none';
-                video.play();
-            };
-            
-            video.onerror = function() {
-                loading.textContent = '加载失败，请重试';
-                loading.style.display = 'block';
-                setTimeout(() => {
-                    stopProcessedVideo();
-                }, 2000);
-            };
-            
-            processedVideoPlaying = true;
-            
-            video.onended = function() {
-                stopProcessedVideo();
-            };
-        }
-
-        function stopProcessedVideo() {
-            if (!processedVideoPlaying) return;
-            
-            const videoContainer = processedPreview.parentElement;
-            const img = videoContainer.querySelector('img');
-            const video = videoContainer.querySelector('video');
-            const loading = videoContainer.querySelector('#processedLoading');
-            
-            video.pause();
-            video.style.display = 'none';
-            img.style.display = 'block';
-            loading.style.display = 'none';
-            processedVideoPlaying = false;
-        }
-
-        let originalVideoUrl = '';
-        let processedVideoUrl = '';
-
-        function uploadFile(file) {
-            const formData = new FormData();
-            formData.append('video', file);
-
-            progress.style.display = 'block';
-            result.style.display = 'none';
-
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                progress.style.display = 'none';
-                result.style.display = 'block';
-                result.classList.add('fade-in');
-                
-                damagePercentage.textContent = data.average_damage;
-                originalPreview.src = 'data:image/jpeg;base64,' + data.original_preview;
-                processedPreview.src = 'data:image/jpeg;base64,' + data.processed_preview;
-                downloadBtn.href = data.video_url;
-                
-                originalVideoUrl = data.original_video_url;
-                processedVideoUrl = data.video_url;
-            })
-            .catch(error => {
-                progress.style.display = 'none';
-                showError('处理视频时出错: ' + error);
+            // 处理文件拖放
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dragArea.addEventListener(eventName, preventDefaults, false);
             });
-        }
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dragArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dragArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                dragArea.classList.add('active');
+            }
+
+            function unhighlight() {
+                dragArea.classList.remove('active');
+            }
+
+            // 处理文件拖放
+            dragArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+
+            // 处理文件选择时显示预览
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    if (file.type.startsWith('video/')) {
+                        uploadButton.disabled = false;
+                        dragArea.querySelector('p').textContent = file.name;
+                        
+                        // 创建视频预览
+                        const video = document.createElement('video');
+                        video.preload = 'metadata';
+                        
+                        // 设置视频加载完成后的回调
+                        video.onloadedmetadata = function() {
+                            // 跳转到视频的中间位置获取预览帧
+                            video.currentTime = Math.min(1, video.duration / 2);
+                        };
+                        
+                        video.onseeked = function() {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            const previewUrl = canvas.toDataURL('image/jpeg');
+                            
+                            // 更新预览图
+                            originalPreview.src = previewUrl;
+                            processedPreview.src = previewUrl;
+                            
+                            // 显示预览容器
+                            document.querySelectorAll('.preview-container').forEach(container => {
+                                container.style.display = 'block';
+                            });
+                        };
+                        
+                        video.onerror = function() {
+                            console.error('预览生成失败');
+                            showError('无法生成视频预览');
+                        };
+                        
+                        video.src = URL.createObjectURL(file);
+                    } else {
+                        showError('请选择视频文件');
+                        uploadButton.disabled = true;
+                    }
+                }
+            });
+
+            function showError(message) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show mt-3';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-circle me-2"></i>${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                dragArea.parentElement.appendChild(alert);
+                setTimeout(() => alert.remove(), 5000);
+            }
+
+            // 检查必要的元素是否存在
+            if (!progressBar || !progressBarInner || !processingProgress || !processingBar || !processingStatus) {
+                console.error('Required elements not found');
+                return;
+            }
+
+            // 处理表单提交
+            uploadForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    alert('请选择视频文件');
+                    return;
+                }
+
+                try {
+                    // 显示加载状态
+                    if (progressBar && progressBarInner && processingProgress && processingBar && processingStatus) {
+                        progressBar.style.display = 'block';
+                        progressBarInner.style.width = '0%';
+                        processingProgress.style.display = 'block';
+                        processingBar.style.width = '0%';
+                        processingStatus.textContent = '正在上传...';
+                    }
+
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('上传失败');
+                    }
+
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        throw new Error(data.message || '上传失败');
+                    }
+                    
+                    // 显示结果容器
+                    if (result) {
+                        result.style.display = 'block';
+                    }
+                    
+                    // 获取基础URL
+                    const baseUrl = window.location.origin;
+                    
+                    // 更新视频源
+                    if (originalVideo && processedVideo) {
+                        originalVideo.src = baseUrl + data.original_video_url;
+                        originalVideo.type = 'video/mp4';
+                        
+                        processedVideo.src = baseUrl + data.video_url;
+                        processedVideo.type = 'video/mp4';
+                        
+                        // 预加载视频
+                        originalVideo.load();
+                        processedVideo.load();
+                        
+                        // 显示视频容器
+                        const originalContainer = originalVideo.closest('.video-container');
+                        const processedContainer = processedVideo.closest('.video-container');
+                        if (originalContainer && processedContainer) {
+                            originalContainer.style.display = 'block';
+                            processedContainer.style.display = 'block';
+                        }
+                    }
+                    
+                    // 更新损坏百分比
+                    if (damagePercentage) {
+                        damagePercentage.textContent = 
+                            `平均损坏率: ${data.average_damage.toFixed(2)}%`;
+                    }
+                    
+                    // 更新下载按钮
+                    if (downloadBtn) {
+                        downloadBtn.href = baseUrl + data.video_url;
+                    }
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('上传视频时出错: ' + error.message);
+                } finally {
+                    // 隐藏加载状态
+                    if (progressBar && processingProgress) {
+                        progressBar.style.display = 'none';
+                        processingProgress.style.display = 'none';
+                    }
+                }
+            });
+
+            // 定义视频播放控制函数
+            function stopOriginalVideo() {
+                if (!originalVideoPlaying) return;
+                
+                const videoContainer = originalPreview.parentElement;
+                const img = videoContainer.querySelector('img');
+                const video = videoContainer.querySelector('video');
+                const loading = videoContainer.querySelector('#originalLoading');
+                
+                video.pause();
+                video.style.display = 'none';
+                img.style.display = 'block';
+                loading.style.display = 'none';
+                originalVideoPlaying = false;
+            }
+
+            function stopProcessedVideo() {
+                if (!processedVideoPlaying) return;
+                
+                const videoContainer = processedPreview.parentElement;
+                const img = videoContainer.querySelector('img');
+                const video = videoContainer.querySelector('video');
+                const loading = videoContainer.querySelector('#processedLoading');
+                
+                video.pause();
+                video.style.display = 'none';
+                img.style.display = 'block';
+                loading.style.display = 'none';
+                processedVideoPlaying = false;
+            }
+
+            // 添加播放按钮事件监听
+            document.getElementById('playOriginalBtn').addEventListener('click', function() {
+                if (originalVideoPlaying) return;
+                
+                const videoContainer = originalPreview.parentElement;
+                const img = videoContainer.querySelector('img');
+                const video = videoContainer.querySelector('video');
+                const loading = videoContainer.querySelector('#originalLoading');
+                
+                loading.style.display = 'block';
+                
+                // 确保视频源是最新的
+                video.src = originalVideo.src;
+                video.type = 'video/mp4';  // 原始视频使用mp4格式
+                
+                img.style.display = 'none';
+                video.style.display = 'block';
+                
+                video.onloadeddata = function() {
+                    loading.style.display = 'none';
+                    video.play().catch(error => {
+                        console.error('播放错误:', error);
+                        loading.textContent = '播放失败，请重试';
+                        loading.style.display = 'block';
+                        setTimeout(() => {
+                            stopOriginalVideo();
+                        }, 2000);
+                    });
+                };
+                
+                video.onerror = function() {
+                    console.error('视频加载错误');
+                    loading.textContent = '加载失败，请重试';
+                    loading.style.display = 'block';
+                    setTimeout(() => {
+                        stopOriginalVideo();
+                    }, 2000);
+                };
+                
+                originalVideoPlaying = true;
+                
+                video.onended = function() {
+                    stopOriginalVideo();
+                };
+            });
+
+            document.getElementById('stopOriginalBtn').addEventListener('click', stopOriginalVideo);
+
+            document.getElementById('playProcessedBtn').addEventListener('click', function() {
+                if (processedVideoPlaying) return;
+                
+                const videoContainer = processedPreview.parentElement;
+                const img = videoContainer.querySelector('img');
+                const video = videoContainer.querySelector('video');
+                const loading = videoContainer.querySelector('#processedLoading');
+                
+                loading.style.display = 'block';
+                
+                // 确保视频源是最新的
+                video.src = processedVideo.src;
+                video.type = 'video/mp4';  // 处理后的视频也使用mp4格式
+                
+                img.style.display = 'none';
+                video.style.display = 'block';
+                
+                video.onloadeddata = function() {
+                    loading.style.display = 'none';
+                    video.play().catch(error => {
+                        console.error('播放错误:', error);
+                        loading.textContent = '播放失败，请重试';
+                        loading.style.display = 'block';
+                        setTimeout(() => {
+                            stopProcessedVideo();
+                        }, 2000);
+                    });
+                };
+                
+                video.onerror = function() {
+                    console.error('视频加载错误');
+                    loading.textContent = '加载失败，请重试';
+                    loading.style.display = 'block';
+                    setTimeout(() => {
+                        stopProcessedVideo();
+                    }, 2000);
+                };
+                
+                processedVideoPlaying = true;
+                
+                video.onended = function() {
+                    stopProcessedVideo();
+                };
+            });
+
+            document.getElementById('stopProcessedBtn').addEventListener('click', stopProcessedVideo);
+
+            // 添加视频加载错误处理
+            if (originalVideo) {
+                originalVideo.addEventListener('error', function(e) {
+                    console.error('原始视频加载错误:', e);
+                    alert('加载原始视频时出错');
+                });
+            }
+
+            if (processedVideo) {
+                processedVideo.addEventListener('error', function(e) {
+                    console.error('处理后的视频加载错误:', e);
+                    alert('加载处理后的视频时出错');
+                });
+            }
+        });
     </script>
     
     <!-- Bootstrap Bundle with Popper -->
