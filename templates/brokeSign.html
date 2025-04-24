@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>损坏标志检测 - 道路损坏评估系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sign-card {
+            margin-bottom: 1rem;
+            transition: transform 0.3s;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .sign-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .sign-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .sign-info {
+            padding: 1rem;
+        }
+        .sign-type {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .sign-location {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .sign-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .status-severe {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .status-moderate {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+        .status-minor {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .filter-section {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .map-container {
+            height: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">损坏标志检测</h1>
+        
+        <!-- 统计信息 -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <i class="fas fa-exclamation-triangle stat-icon text-warning"></i>
+                    <div class="stat-value">24</div>
+                    <div class="stat-label">总损坏标志数</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <i class="fas fa-exclamation-circle stat-icon text-danger"></i>
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">严重损坏</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <i class="fas fa-map-marker-alt stat-icon text-primary"></i>
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">已修复</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 筛选器 -->
+        <div class="filter-section">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="typeFilter" class="form-label">标志类型</label>
+                    <select class="form-select" id="typeFilter">
+                        <option value="all">全部类型</option>
+                        <option value="warning">警告标志</option>
+                        <option value="prohibition">禁令标志</option>
+                        <option value="indication">指示标志</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="statusFilter" class="form-label">损坏程度</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="all">全部</option>
+                        <option value="severe">严重损坏</option>
+                        <option value="moderate">中等损坏</option>
+                        <option value="minor">轻微损坏</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="dateFilter" class="form-label">检测日期</label>
+                    <input type="date" class="form-control" id="dateFilter">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn btn-primary w-100" id="searchButton">
+                        <i class="fas fa-search me-2"></i>搜索
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 地图显示 -->
+        <div class="map-container" id="map">
+            <!-- 这里将添加地图 -->
+        </div>
+
+        <!-- 标志列表 -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card sign-card">
+                    <img src="https://via.placeholder.com/600x400" class="sign-image" alt="损坏标志">
+                    <div class="sign-info">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="sign-type">限速标志</span>
+                            <span class="sign-status status-severe">严重损坏</span>
+                        </div>
+                        <p class="sign-location mb-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>东城区建国路
+                        </p>
+                        <p class="sign-location mb-3">
+                            <i class="fas fa-calendar me-2"></i>2024-04-20 14:30
+                        </p>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i>查看详情
+                            </button>
+                            <button class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-download me-1"></i>下载报告
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card sign-card">
+                    <img src="https://via.placeholder.com/600x400" class="sign-image" alt="损坏标志">
+                    <div class="sign-info">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="sign-type">禁止停车标志</span>
+                            <span class="sign-status status-moderate">中等损坏</span>
+                        </div>
+                        <p class="sign-location mb-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>西城区复兴路
+                        </p>
+                        <p class="sign-location mb-3">
+                            <i class="fas fa-calendar me-2"></i>2024-04-19 10:15
+                        </p>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i>查看详情
+                            </button>
+                            <button class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-download me-1"></i>下载报告
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分页 -->
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">上一页</a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#">下一页</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 添加筛选功能
+        document.getElementById('searchButton').addEventListener('click', function() {
+            // 这里添加筛选逻辑
+            console.log('搜索按钮被点击');
+        });
+
+        // 初始化地图
+        function initMap() {
+            // 这里添加地图初始化代码
+            console.log('初始化地图');
+        }
+
+        // 页面加载完成后初始化地图
+        document.addEventListener('DOMContentLoaded', initMap);
+    </script>
+</body>
+</html>
