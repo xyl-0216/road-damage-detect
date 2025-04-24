@@ -78,8 +78,7 @@ http://localhost:5000
 ### 原始视频与处理后视频对比
 ![视频对比](result_picture3.png)
 
-### 损坏率统计
-![损坏率统计](result_picture3.png)
+
 
 ## 注意事项
 
