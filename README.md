@@ -70,13 +70,22 @@ http://localhost:5000
 ## 运行结果展示
 
 ### 登录界面
-![登录界面](result_picture.png)
+![登录界面](https://raw.githubusercontent.com/xyl-0216/road-damage-detect/main/indexp.png)
 
-### 视频处理中
-![处理中](result_picture2.png)
+### 首页页面
+![功能展示](https://raw.githubusercontent.com/xyl-0216/road-damage-detect/main/rp4.png)
+
+### 去雾功能展示页面
+![去雾功能展示](https://raw.githubusercontent.com/xyl-0216/road-damage-detect/main/rp7.png)
+
+### 记录损坏页面
+![记录道路路面损坏功能展示](https://raw.githubusercontent.com/xyl-0216/road-damage-detect/main/rp5.png)
+
+### 道路牌损坏记录
+![记录道路牌损坏功能展示](https://raw.githubusercontent.com/xyl-0216/road-damage-detect/main/rp6.png)
 
 ### 原始视频与处理后视频对比
-![视频对比](result_picture3.png)
+![视频对比](https://raw.githubusercontent.com/xyl-0216/road-damage-detect/main/result_picture3.png)
 
 
 
